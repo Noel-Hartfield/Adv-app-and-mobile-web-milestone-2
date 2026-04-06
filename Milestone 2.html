@@ -7,45 +7,17 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <style>
-body{
-    font-family: Arial;
-    margin:0;
-    background:#f4f6f8;
-}
-nav{
-    background:#2c3e50;
-    padding:15px;
-}
-nav a{
-    color:white;
-    margin-right:20px;
-    text-decoration:none;
-    font-weight:bold;
-}
-.container{
-    padding:20px;
-}
+body{font-family:Arial;margin:0;background:#f4f6f8;}
+nav{background:#2c3e50;padding:15px;}
+nav a{color:white;margin-right:20px;text-decoration:none;font-weight:bold;}
+.container{padding:20px;}
 .bookCard{
-    display:inline-block;
-    width:200px;
-    background:white;
-    margin:10px;
-    padding:10px;
-    border-radius:8px;
-    box-shadow:0 0 5px #ccc;
-    text-align:center;
+    display:inline-block;width:200px;background:white;margin:10px;padding:10px;
+    border-radius:8px;box-shadow:0 0 5px #ccc;text-align:center;
 }
-.bookCard img{
-    height:200px;
-}
+.bookCard img{height:200px;}
 .hidden{display:none;}
-button{
-    padding:8px 15px;
-    background:#3498db;
-    color:white;
-    border:none;
-    border-radius:5px;
-}
+button{padding:8px 15px;background:#3498db;color:white;border:none;border-radius:5px;}
 input{padding:8px;width:300px;}
 select{padding:6px;}
 </style>
@@ -60,7 +32,6 @@ select{padding:6px;}
 
 <div class="container">
 
-<!-- HOME SEARCH PAGE -->
 <div id="homePage">
 <h1>Book Search</h1>
 <input type="text" id="searchBox" placeholder="Search books...">
@@ -71,10 +42,8 @@ Page:
 <div id="results"></div>
 </div>
 
-<!-- BOOK DETAILS PAGE -->
 <div id="detailsPage" class="hidden"></div>
 
-<!-- BOOKSHELF PAGE -->
 <div id="shelfPage" class="hidden">
 <h1>My Bookshelf</h1>
 <div id="bookshelfResults"></div>
@@ -83,12 +52,9 @@ Page:
 </div>
 
 <script>
-
-let currentQuery="";
 let resultsPerPage=10;
 let allResults=[];
 
-/* NAVIGATION */
 $("#navHome").click(()=>showPage("home"));
 $("#navShelf").click(()=>{showPage("shelf");loadBookshelf();});
 
@@ -99,11 +65,9 @@ function showPage(page){
     if(page==="shelf") $("#shelfPage").removeClass("hidden");
 }
 
-/* SEARCH BOOKS */
 $("#searchBtn").click(function(){
-    currentQuery=$("#searchBox").val();
-    if(currentQuery==="") return;
-    let url=`https://www.googleapis.com/books/v1/volumes?q=${currentQuery}&maxResults=40`;
+    let q=$("#searchBox").val();
+    let url=`https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=40`;
     $.getJSON(url,function(data){
         allResults=data.items.slice(0,60);
         buildPagination();
@@ -111,25 +75,18 @@ $("#searchBtn").click(function(){
     });
 });
 
-/* PAGINATION */
 function buildPagination(){
     $("#pageSelect").empty();
     let pages=Math.ceil(allResults.length/resultsPerPage);
-    for(let i=1;i<=pages;i++){
-        $("#pageSelect").append(`<option value="${i}">${i}</option>`);
-    }
+    for(let i=1;i<=pages;i++) $("#pageSelect").append(`<option>${i}</option>`);
 }
 
-$("#pageSelect").change(function(){
-    displayPage($(this).val());
-});
+$("#pageSelect").change(function(){ displayPage($(this).val()); });
 
 function displayPage(page){
     $("#results").empty();
     let start=(page-1)*resultsPerPage;
-    let end=start+resultsPerPage;
-    let books=allResults.slice(start,end);
-
+    let books=allResults.slice(start,start+resultsPerPage);
     books.forEach(book=>{
         let info=book.volumeInfo;
         let img=info.imageLinks?.thumbnail || "";
@@ -141,10 +98,8 @@ function displayPage(page){
     });
 }
 
-/* BOOK DETAILS */
 function loadDetails(id){
-    let url=`https://www.googleapis.com/books/v1/volumes/${id}`;
-    $.getJSON(url,function(data){
+    $.getJSON(`https://www.googleapis.com/books/v1/volumes/${id}`,function(data){
         let b=data.volumeInfo;
         let price=data.saleInfo?.listPrice?.amount || "N/A";
         $("#detailsPage").html(`
@@ -159,14 +114,13 @@ function loadDetails(id){
     });
 }
 
-/* BOOKSHELF */
+/* YOUR BOOKSHELF BOOK */
 const bookshelfIDs=["0yfauGsKOjAC","6gfDfhmmHxMC","M6SwUjgBoy8C","kJw4xgJSEqMC","gTycDAEACAAJ"];
 
 function loadBookshelf(){
     $("#bookshelfResults").empty();
     bookshelfIDs.forEach(id=>{
-        let url=`https://www.googleapis.com/books/v1/volumes/${id}`;
-        $.getJSON(url,function(data){
+        $.getJSON(`https://www.googleapis.com/books/v1/volumes/${id}`,function(data){
             let info=data.volumeInfo;
             let img=info.imageLinks?.thumbnail || "";
             $("#bookshelfResults").append(`
@@ -178,12 +132,9 @@ function loadBookshelf(){
     });
 }
 
-/* CHECK URL FOR BOOK ID */
 const params=new URLSearchParams(window.location.search);
-if(params.get("book")){
-    loadDetails(params.get("book"));
-}
-
+if(params.get("book")) loadDetails(params.get("book"));
 </script>
+
 </body>
 </html>
